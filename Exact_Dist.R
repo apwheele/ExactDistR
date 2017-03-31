@@ -8,35 +8,37 @@ chiStat <- function(v,p=rep(1/length(v),length(v))){
   n <- sum(v)
   e <- n*p
   r <- (v-e)^2
-  c <- ifelse(e>0,r/e,0)
+  c <- ifelse(e>0,r/e,0) #this is for zero prob bins for alternate process
   return(sum(c))
 }
 #Kuipers V - probably stole this from the circular package at some point
 KuiperTest <- function(v,p=rep(1/length(v),length(v))){
   n <- sum(v)
   u <- cumsum(p) 
-  e <- cumsum(v/n)        #ecdf
+  s <- v/n
+  e <- cumsum(s)        #ecdf
   Dp <- max(e - u)
-  Dm <- max(u - (u - v/n))
-  V <- (Dp + Dm)* (sqrt(n) + 0.155 + 0.24/sqrt(n))
+  Dm <- max(s)
+  sq_n <- sqrt(n)
+  V <- (Dp + Dm)* (sq_n + 0.155 + 0.24/sq_n)
   return(V) 
 }
 #Kolmogrov smirnov test
 KSTest <- function(v,p=rep(1/length(v),length(v))){
   n <- sum(v)
   u <- cumsum(p)
-  e <- cumsum(v/n)        #ecdf
+  s <- v/n
+  e <- cumsum(s)        #ecdf
   Dp <- max(e - u)
-  Dm <- max(u - (u - v/n))
+  Dm <- max(s)
   D <- max(c(Dp,Dm))
   return(D) 
 }
 #likelihood ratio G test
 GTest <- function(v,p=rep(1/length(v),length(v))){
   e <- sum(v)*p
-  r <- ifelse(e>0,v/e,0)
-  l <- ifelse(r>0,log(r),0)
-  g <- 2*sum(v*l)
+  r <- ifelse(v>0,log(v/e),0)
+  g <- 2*sum(v*r)
   return(g)
 }
 #multinomial prob based on set of probabilities, defaults to equal probabilities
@@ -141,15 +143,19 @@ print.PowerSmallSamp <- function(x){
 #example power analysis
 #R package
 
-#now with an example dataset, http://stats.stackexchange.com/q/133377/1036
+##now with an example dataset, http://stats.stackexchange.com/q/133377/1036
 #d <- c(3,2,1,2,1,2,6) #format N observations in M bins
 #p <- rep(1/7,7) #equiprobable across days
 #t <- SmallSampTest(d=d,p=p,type="Chi")
-#t$`Chi`
-#t$`p-value`
-#t$`Aggregate Statistics`
-#
+#t
+##using the asymptotic distribution you come to the same conclusion
+#chisq.test(d) #p-value slightly lower
+##using simulation p-value is closer to exact function
+#chisq.test(d,simulate.p.value = TRUE, B = 9999)
+
+##likelihood ratio G statistic
 #gT <- SmallSampTest(d=d,p=p,type="G")
+#gT
 #
 ##using the asymptotic distribution you come to the same conclusion
 #chisq.test(d)
@@ -163,11 +169,11 @@ print.PowerSmallSamp <- function(x){
 #SmallSampTest(d=x,type="Chi")
 #chisq.test(x)
 #
-#Example with KS test
+##Example with KS test
 #mC <- c(1,2,3)
 #SmallSampTest(d=mC,type="KS")
-#same D value as ks test with expanded data
-#because CDF of uniform is the same as equal prob bins
+##same D value as ks test with expanded data
+##because CDF of uniform is the same as equal prob bins
 #x <- c(1,2,2,3,3,3)
 #ks.test(x,"punif",min=1,max=3)
 
