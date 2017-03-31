@@ -37,7 +37,7 @@ KSTest <- function(v,p=rep(1/length(v),length(v))){
 #likelihood ratio G test
 GTest <- function(v,p=rep(1/length(v),length(v))){
   e <- sum(v)*p
-  r <- ifelse(v>0,log(v/e),0)
+  r <- ifelse(v>0&e>0,log(v/e),0)
   g <- 2*sum(v*r)
   return(g)
 }
